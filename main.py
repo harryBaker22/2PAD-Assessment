@@ -357,7 +357,10 @@ def createMainWindow():
 
 
 def createItemSelection():
+    
+    
     global itemSelectionWindow
+    
     itemSelectionWindow = tk.Toplevel()
 
     #Binding root being opened to reopening this window
@@ -405,7 +408,6 @@ def createItemSelection():
     
     #Creating item window
     createItemWindow(itemFrame, searchBar.get())
-
     
 def createConfirmItemSelection():
     global confirmItemSelectionWindow
