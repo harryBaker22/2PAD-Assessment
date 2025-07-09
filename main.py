@@ -186,11 +186,11 @@ def createItemWindow(itemsFrame, searchBarText):
 #ITEM HIRE CONFIRM FUNCTIONS
 ####################################################################################################################################
 #Canvas Configure function for multiple lines
-def hiredItemsCanvasConfigure(event, canvas, scrollRegionHeight, canvasWindow):
+def newHiredItemsCanvasConfigure(event, canvas, scrollRegionHeight, canvasWindow):
     canvas.configure(scrollregion=(0, 0, 1000, scrollRegionHeight))
     canvas.itemconfig(canvasWindow, width=event.width)
 
-def createHiredItems(itemsFrame):
+def createNewHiredItemsViewCanvas(itemsFrame):
     indexList = []
     #Emptying valid index list
     indexList.clear()
@@ -229,7 +229,7 @@ def createHiredItems(itemsFrame):
     #Binding scroll region height and canvasWindow width resize to fit the canvas width to the canvas being changed
     #Setting height of scroll region based on amount of items
     height = max(175 * math.ceil(len(indexList)), 550) 
-    canvas.bind("<Configure>", lambda event: hiredItemsCanvasConfigure(event=event, canvas=canvas, scrollRegionHeight=height, canvasWindow=canvasWindow))
+    canvas.bind("<Configure>", lambda event: newHiredItemsCanvasConfigure(event=event, canvas=canvas, scrollRegionHeight=height, canvasWindow=canvasWindow))
 
     #Putting Hired Items into canvas 
 
@@ -256,7 +256,6 @@ def createHiredItems(itemsFrame):
             itemQuantityLabel.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
         except:
             pass
-
 
 def generateReceiptNumber():
     receiptNum = 0
@@ -317,16 +316,212 @@ def saveHire(customerName):
     goToWindow(confirmItemSelectionWindow, createMainWindow)
 
 ####################################################################################################################################
+#HIRES VIEW FUNCTIONS
+####################################################################################################################################
+def hiresViewsCanvasConfigure(event, canvas, scrollRegionHeight, canvasWindow):
+    canvas.configure(scrollregion=(0, 0, 1000, scrollRegionHeight))
+    canvas.itemconfig(canvasWindow, width=event.width)
+
+def viewHire(index):
+    goToWindow(hiresViewWindow, createReturnConfirm, index)
+
+def createHiresViewCanvas(frame, searchedNumber):
+    #Destroying all current items in frame for refresh
+    for widget in frame.winfo_children():
+        widget.destroy()
+    
+    #Valid index list
+    indexList = []
+    indexList.clear()
+    
+    #Getting current hires file in array of lines
+    linesArray = []
+    with open("hires.txt", "r") as file:
+        linesArray = file.readlines()
+
+    #Finding indexs of lines with matching receipt numbers to the seacrhbar
+    for i in range(0, len(linesArray)):
+        #Splitting each line into seperate elements
+        lineArray = linesArray[i].split(",")
+
+        #Getting receipt number
+        receiptNumber = lineArray[0]
+
+        #If matching, append index to valid index list
+        if searchedNumber in receiptNumber:
+            indexList.append(i)
+
+    #Creating canvas in main frame
+    canvas = Canvas(frame, bg="lightgreen")
+    canvas.pack(side=LEFT, fill=BOTH, expand=True)# Going on left hand side, and filling to the whole screen, then expanding to fit
+    
+    #Adding a scrollbar
+    #Scrollbar with vertical orientation(going up and down), and using canvas.yview because its vertical
+    scrollbar = Scrollbar(frame, orient=VERTICAL, command=canvas.yview)
+    
+    #Scrollbar on right side of screen, and filled from top to bottom
+    scrollbar.pack(side=RIGHT, fill=Y)
+    
+    #Configure the canvas for scrolling
+    canvas.configure(yscrollcommand=scrollbar.set)
+    
+    #Using mouse wheel to scroll
+    canvas.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+
+    #Frame inside canvas to put things in
+    canvasFrame = Frame(canvas, bg="lightgreen")
+    
+    #binding frame to scrollwheel so you can still scroll while over the frame
+    canvasFrame.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+
+    #Add frame to window inside canvas
+    canvasWindow = canvas.create_window((0, 0), window=canvasFrame, anchor="nw")
+
+    #Binding scroll region height and canvasWindow width resize to fit the canvas width to the canvas being changed
+    #Setting height of scroll region based on amount of valid hires
+    height = max(130 * math.ceil(len(indexList)), 550) 
+    canvas.bind("<Configure>", lambda event: hiresViewsCanvasConfigure(event=event, canvas=canvas, scrollRegionHeight=height, canvasWindow=canvasWindow))
+
+    #Putting Hired Items into canvas 
+
+    #Creating items in canvas
+    for i in range(0, len(indexList)):
+        try:
+            #Getting line split into elements
+            lineArray = linesArray[indexList[i]].split(",")
+
+            #Frames for each hire
+            hireFrame = Frame(canvasFrame, borderwidth=3, relief=tk.SUNKEN)
+            hireFrame.pack(pady=10, padx=10, fill=tk.X, expand=True)
+
+            #Info Frame
+            infoFrame = Frame(hireFrame)
+            infoFrame.pack(side=LEFT, fill=X, expand=True)
+            infoFrame.columnconfigure(1, weight=1)
+
+            #Receipt Number
+            hireReceiptNumLabel = Label(infoFrame, text="{0:>10}".format(lineArray[0]), height=4, font=standardFont, anchor=tk.W)
+            hireReceiptNumLabel.grid(row=0, column=0, sticky="e", padx=10)
+
+            #Customer Name
+            hireCustomerNameLabel = Label(infoFrame, text="{0:>30}".format(lineArray[1]), height=4, font=standardFont, anchor=tk.E)
+            hireCustomerNameLabel.grid(row=0, column=2, sticky="w", padx=10)
+
+            #View hire button and frame
+            viewFrame = Frame(hireFrame)
+            viewFrame.pack(side=RIGHT)
+
+            viewButton = Button(viewFrame, text="View", font=standardFont, command=lambda index=indexList[i]: viewHire(index))
+            viewButton.pack(padx=10)
+
+            #Binding everything so you can scroll while over the items
+            hireFrame.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+            infoFrame.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+            hireReceiptNumLabel.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+            hireCustomerNameLabel.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+            viewFrame.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+            viewButton.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+        except:
+            pass
+
+####################################################################################################################################
+#RETURN VIEW FUNCTIONS
+####################################################################################################################################
+def returnHire(index):
+    #Get file as an array of lines
+    with open("hires.txt", "r") as file:
+        linesArray = file.readlines()
+
+    #Remove line at index
+    linesArray.pop(index)
+
+    #Override file with the same array
+    with open("hires.txt" , "w") as file:
+        for line in linesArray:
+            file.write(line)
+    
+    #Show message box for feedback to user
+    messagebox.showinfo("Info", "Hire has been markes as returned")
+    #Back to main page
+    goToWindow(returnConfirmWindow, createMainWindow)
+
+def returnCanvasConfigure(event, canvas, scrollRegionHeight, canvasWindow):
+    canvas.configure(scrollregion=(0, 0, 1000, scrollRegionHeight))
+    canvas.itemconfig(canvasWindow, width=event.width)
+
+def createReturnItemsViewCanvas(itemsFrame, lineArray):
+    #Creating canvas in main frame
+    canvas = Canvas(itemsFrame, bg="lightgreen")
+    canvas.pack(side=LEFT, fill=BOTH, expand=True)# Going on left hand side, and filling to the whole screen, then expanding to fit
+    
+    #Adding a scrollbar
+    #Scrollbar with vertical orientation(going up and down), and using canvas.yview because its vertical
+    scrollbar = Scrollbar(itemsFrame, orient=VERTICAL, command=canvas.yview)
+    
+    #Scrollbar on right side of screen, and filled from top to bottom
+    scrollbar.pack(side=RIGHT, fill=Y)
+    
+    #Configure the canvas for scrolling
+    canvas.configure(yscrollcommand=scrollbar.set)
+    
+    #Using mouse wheel to scroll
+    canvas.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+
+    #Frame inside canvas to put things in
+    canvasFrame = Frame(canvas, bg="lightgreen")
+    
+    #binding frame to scrollwheel so you can still scroll while over the frame
+    canvasFrame.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+
+    #Add frame to window inside canvas
+    canvasWindow = canvas.create_window((0, 0), window=canvasFrame, anchor="nw")
+
+
+    #Binding scroll region height and canvasWindow width resize to fit the canvas, to the canvas being changed
+    #Setting height of scroll region based on amount of items
+    height = max(175 * math.ceil((len(lineArray) - 2) / 2), 550)
+    canvas.bind("<Configure>", lambda event: returnCanvasConfigure(event=event, canvas=canvas, scrollRegionHeight=height, canvasWindow=canvasWindow))
+
+    #Putting Hired Items into canvas 
+    #Creating items in canvas
+    for i in range(2, math.ceil(len(lineArray) / 2) + 1):
+        try:
+            # Calculating currently used item index and quantity
+            itemIndex = int(lineArray[i*2 - 2])
+            quantity = int(lineArray[i*2 - 1])
+
+            #Frames for each item
+            itemFrame = Frame(canvasFrame, borderwidth=3, relief=tk.SUNKEN)
+            itemFrame.pack(pady=10, padx=10, fill=tk.X, expand=True)
+            
+            itemFrame.columnconfigure(1, weight=1)
+
+            #Title for item
+            itemTitleLabel = Label(itemFrame, text="{0:<40}".format(hireItems[itemIndex]), width=20, height=4, font=standardFont, anchor=tk.W)
+            itemTitleLabel.grid(row=0, column=0, sticky="e")
+
+            # Quantity for item
+            itemQuantityLabel = Label(itemFrame, text="{0:>3}".format(quantity), width=10, height=4, font=standardFont, anchor=tk.E)
+            itemQuantityLabel.grid(row=0, column=2, sticky="w")
+
+            #Binding everything so you can scroll while over the items
+            itemFrame.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+            itemTitleLabel.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+            itemQuantityLabel.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+        except:
+            pass
+
+####################################################################################################################################
 #WINDOW FUNCTIONS
 ####################################################################################################################################
 
 
-def goToWindow(currentWindow, targetWindwow):
+def goToWindow(currentWindow, targetWindwow, *args):
     root.iconify()
     currentWindow.destroy()
-    targetWindwow()
+    targetWindwow(args)
 
-def createMainWindow():
+def createMainWindow(*args):
 
     #Resetting quantity counter to 0
     global quantityCounter
@@ -353,14 +548,14 @@ def createMainWindow():
     createTopBar(mainWindow, createMainWindow)
     
     #Buttons to other windows
-    Button(mainWindow, text="Hire Items", borderwidth=5, font=standardFont, command=lambda: goToWindow(mainWindow, createItemSelection)).pack(pady=30, padx=30)
+    buttonFrame = Frame(mainWindow)
+    buttonFrame.pack(pady=3, fill=BOTH, expand=True)
+    Button(buttonFrame, text="Hire Items", borderwidth=5, font=standardFont, command=lambda: goToWindow(mainWindow, createItemSelection)).pack(pady=10, padx=30)
+    Button(buttonFrame, text="View Current Hires", borderwidth=5, font=standardFont, command=lambda: goToWindow(mainWindow, createHiresView)).pack(pady=10, padx=30)
 
 
-def createItemSelection():
-    
-    
+def createItemSelection(*args):
     global itemSelectionWindow
-    
     itemSelectionWindow = tk.Toplevel()
 
     #Binding root being opened to reopening this window
@@ -400,7 +595,7 @@ def createItemSelection():
     searchBarTextVariable.trace_add("write", lambda a, b, c: createItemWindow(itemFrame, searchBarTextVariable.get()))
 
     #Confirm order button
-    Button(sideBar, text="Confirm Hire", font=standardFont, command=lambda: goToWindow(itemSelectionWindow, createConfirmItemSelection)).grid(row=2, column=0, pady=425, padx=10, sticky="s")
+    Button(sideBar, text="Check Hire", font=standardFont, command=lambda: goToWindow(itemSelectionWindow, createConfirmItemSelection)).grid(row=2, column=0, pady=425, padx=10, sticky="s")
 
     #Creating frame for canvas to sit in
     itemFrame = Frame(mainFrame)
@@ -409,7 +604,7 @@ def createItemSelection():
     #Creating item window
     createItemWindow(itemFrame, searchBar.get())
     
-def createConfirmItemSelection():
+def createConfirmItemSelection(*args):
     global confirmItemSelectionWindow
     confirmItemSelectionWindow = tk.Toplevel()
 
@@ -439,11 +634,11 @@ def createConfirmItemSelection():
     Label(mainFrame, text="HIRED ITEMS:", font=standardFont).pack(pady=10)
 
     #Frame for Hired items list
-    itemsFrame = Frame(mainFrame, borderwidth=10, relief=tk.SUNKEN)
+    itemsFrame = Frame(mainFrame, borderwidth=10, relief=tk.RAISED)
     itemsFrame.pack(fill=BOTH, expand=True, padx=10)
 
     #Creating hired items list
-    createHiredItems(itemsFrame)
+    createNewHiredItemsViewCanvas(itemsFrame)
 
     #Customer name label and entry
     Label(mainFrame, text="Customer Name:", font=standardFont).pack(pady=10, padx=10, side=LEFT)
@@ -456,24 +651,106 @@ def createConfirmItemSelection():
     confirmHireButton.pack(pady=10, padx=10, side=RIGHT)
 
 
+def createHiresView(*args):
+    global hiresViewWindow
+    hiresViewWindow = tk.Toplevel()
+
+    #Binding root being opened to reopening this window
+    root.bind("<FocusIn>", lambda e: goToWindow(hiresViewWindow, createHiresView))
+
+    #Spawning window in center of the screen
+    windowWidth = 1000
+    windowHeight = 800
+    hiresViewWindow.geometry("%dx%d+%d+%d" % (windowWidth, windowHeight, int((root.winfo_screenwidth() / 2) - (windowWidth / 2)), int((root.winfo_screenheight() / 2) - (windowHeight / 2))))
+    hiresViewWindow.resizable(False, False)
+    hiresViewWindow.overrideredirect(True)
+    hiresViewWindow.config(borderwidth=20, relief=tk.SUNKEN)
     
+    #Focusing the window
+    hiresViewWindow.focus_force()
+    
+    #Top Bar
+    createTopBar(hiresViewWindow, createMainWindow)
+
+    #Create a main frame to put everything into
+    mainFrame = Frame(hiresViewWindow)
+    mainFrame.config(borderwidth=5, relief=tk.RIDGE)
+    mainFrame.pack(fill=BOTH, expand=True) # Fills the whole screen, and expands to fit it
+
+    #Frame for receipt number search
+    receiptNumberFrame = Frame(mainFrame)
+    receiptNumberFrame.pack(anchor=tk.NW)
+
+    #Receipt number label and entry
+    Label(receiptNumberFrame, text="Search Receipt No.:", font=standardFont).grid(row=0, column=0, pady=10, padx=10)
+    customerNameEntryText = tk.StringVar()
+    customerNameEntry = Entry(receiptNumberFrame, textvariable=customerNameEntryText, font=standardFont)
+    customerNameEntry.grid(row=0, column=1, pady=10, padx=10)
+
+    #Frame for hires to go in
+    hireFrame = Frame(mainFrame, borderwidth=10, relief=tk.RAISED)
+    hireFrame.pack(fill=BOTH, expand=True)
+
+    #Binding search bar entry change to refreshing the hires shown
+    customerNameEntryText.trace_add("write", lambda a, b, c: createHiresViewCanvas(hireFrame, customerNameEntryText.get()))
+
+    #Creating canvas with hires in it
+    createHiresViewCanvas(hireFrame, customerNameEntryText.get())
 
 
+def createReturnConfirm(hireIndex, *args):
+    #Getting index of hire in file from the passed tuple
+    index = hireIndex[0]
+    
+    global returnConfirmWindow
+    returnConfirmWindow = tk.Toplevel()
 
-def createHiresView():
-    pass
-def createReturnView():
-    pass
-def createReturnConfirm():
-    pass
+    #Binding root being opened to reopening this window
+    root.bind("<FocusIn>", lambda e: goToWindow(returnConfirmWindow, createReturnConfirm, index))
 
+    #Spawning window in center of the screen
+    windowWidth = 1000
+    windowHeight = 800
+    returnConfirmWindow.geometry("%dx%d+%d+%d" % (windowWidth, windowHeight, int((root.winfo_screenwidth() / 2) - (windowWidth / 2)), int((root.winfo_screenheight() / 2) - (windowHeight / 2))))
+    returnConfirmWindow.resizable(False, False)
+    returnConfirmWindow.overrideredirect(True)
+    returnConfirmWindow.config(borderwidth=20, relief=tk.SUNKEN)
+    
+    #Focusing the window
+    returnConfirmWindow.focus_force()
+    
+    #Top Bar
+    createTopBar(returnConfirmWindow, createHiresView)
 
+    #Create a main frame to put everything into
+    mainFrame = Frame(returnConfirmWindow)
+    mainFrame.config(borderwidth=5, relief=tk.RIDGE)
+    mainFrame.pack(fill=BOTH, expand=True) # Fills the whole screen, and expands to fit it
 
+    #"HIRED ITEMS"
+    Label(mainFrame, text="HIRED ITEMS:", font=standardFont).pack(pady=10)
 
+    #Frame for Hired items list
+    itemsFrame = Frame(mainFrame, borderwidth=10, relief=tk.RAISED)
+    itemsFrame.pack(fill=BOTH, expand=True, padx=10)
+    
+    #Getting lines from file
+    linesArray = []
+    with open("hires.txt", "r") as file:
+        linesArray = file.readlines()
+    lineArray = linesArray[index].split(",")
 
+    #Creating currently hired items list
+    createReturnItemsViewCanvas(itemsFrame, lineArray)
+
+    #Customer name label
+    Label(mainFrame, text="Customer Name: {0:<30}".format(lineArray[1]), font=standardFont).pack(pady=10, padx=10, side=LEFT)
+
+    #Mark as returned button
+    confirmReturnButton = Button(mainFrame, text="Mark As Returned", font=standardFont, command=lambda : returnHire(index))
+    confirmReturnButton.pack(pady=10, padx=10, side=RIGHT)
+
+#Creating main window
 createMainWindow()
-
-
-
+#Starting loop
 root.mainloop()
-
