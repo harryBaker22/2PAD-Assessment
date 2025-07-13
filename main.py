@@ -19,7 +19,11 @@ root.geometry("1x1")
 root.iconify()
 
 #Global fonts
-standardFont = tkFont.Font(family="Arial", size=15)
+standardFont = ("Lucida Sans", 14)
+buttonColour = "#7dc6f0"
+windwoColour = "#7D8DF0"
+canvasColour = "#C6F07D"
+backgroundColour = "#4FB2EB"
 
 #Scroll strength
 scrollStrength = 120
@@ -34,18 +38,18 @@ quantityCounter = [0] * len(hireItems)
 def createTopBar(currentWindow, targetBackWindow):
     #Creating top bar
     topBarFrame = Frame(currentWindow)
-    topBarFrame.configure(borderwidth=10, relief=tk.FLAT)
-    topBarFrame.pack(fill=BOTH, anchor='n')
+    topBarFrame.configure(borderwidth=10, relief=tk.GROOVE, bg=backgroundColour)
+    topBarFrame.pack(fill=X, anchor='nw')
 
-    titleFrame = Frame(topBarFrame, borderwidth=5, relief=tk.RAISED)
-    titleFrame.pack(side=LEFT, fill=BOTH, expand=True, pady=10)
-    Label(titleFrame, text="Julies Party Hire Store", font=tkFont.Font(family='Arial', size=30, weight="bold"), width=30, height=2).grid(row=0, column=0, padx=10, pady=10)
+    titleFrame = Frame(topBarFrame, borderwidth=5, relief=tk.RAISED, bg="#7DF0E0")
+    titleFrame.pack(side=LEFT, fill=BOTH, expand=True, pady=10, padx=10)
+    Label(titleFrame, text="Julies Party Hire Store", font=tkFont.Font(family="Lucida Sans", size=30, weight="bold"), height=2, bg="#7DF0E0").pack(pady=10, anchor=tk.CENTER)
 
-    buttonFrame = Frame(topBarFrame)
-    buttonFrame.pack(side=RIGHT, fill=BOTH, expand=True, pady=10)
+    buttonFrame = Frame(topBarFrame, bg=backgroundColour)
+    buttonFrame.pack(side=RIGHT, pady=10)
 
-    exitButton = Button(buttonFrame, text="X", font=tkFont.Font(family='Arial', size=30, weight="bold"), borderwidth=5, relief=tk.RAISED, height=2, command=lambda: quit())
-    backbutton = Button(buttonFrame, text="<-", font=tkFont.Font(family='Arial', size=30, weight="bold"), borderwidth=5, relief=tk.RAISED, height=2, command=lambda: goToWindow(currentWindow, targetBackWindow))
+    exitButton = Button(buttonFrame, text="X", font=tkFont.Font(family="Lucida Sans", size=30, weight="bold"), borderwidth=5, relief=tk.RAISED, height=2, bg=buttonColour, command=lambda: quit())
+    backbutton = Button(buttonFrame, text="<-", font=tkFont.Font(family="Lucida Sans", size=30, weight="bold"), borderwidth=5, relief=tk.RAISED, height=2, bg=buttonColour, command=lambda: goToWindow(currentWindow, targetBackWindow))
     
     backbutton.grid(row=0, column=1, padx=10, pady=10)
     exitButton.grid(row=0, column=2, padx=10, pady=10)
@@ -56,10 +60,10 @@ def createTopBar(currentWindow, targetBackWindow):
 #Item Screen Functions
 ####################################################################################################################################
 
-def changeQuantity(index, textVariable, delta):
+def changeQuantity(index, label, delta):
     #Getting amount in entry incase of changing using keyboard
     try:
-        current = int(textVariable.get())
+        current = int(label.cget("text"))
     except:
         #If invalid data in textbox(empty, letters, special characters, etc.)
         current = 0
@@ -71,8 +75,8 @@ def changeQuantity(index, textVariable, delta):
     if quantityCounter[index] < 0:
         quantityCounter[index] = 0
 
-    #Updating visual quantity amount
-    textVariable.set(quantityCounter[index])
+    # Updating visual quantity amount
+    label.configure(text=quantityCounter[index])
 
 def createItemWindow(itemsFrame, searchBarText):
     indexList = []
@@ -90,7 +94,7 @@ def createItemWindow(itemsFrame, searchBarText):
         widget.destroy()
     
     #Creating canvas in main frame
-    canvas = Canvas(itemsFrame, bg="lightgreen")
+    canvas = Canvas(itemsFrame, bg=canvasColour)
     canvas.pack(side=LEFT, fill=BOTH, expand=True)# Going on left hand side, and filling to the whole screen, then expanding to fit
     
     #Adding a scrollbar
@@ -104,14 +108,14 @@ def createItemWindow(itemsFrame, searchBarText):
     canvas.configure(yscrollcommand=scrollbar.set)
     
     #Setting scroll region based on amount of items
-    height = max(145 * math.ceil(len(indexList) / 3), 550)
+    height = max(125 * math.ceil(len(indexList) / 3), 550)
     canvas.bind("<Configure>", lambda e: canvas.configure(scrollregion=(0, 0, 2000, height)))
 
     #Using mouse wheel to scroll
     canvas.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
 
     #Frame inside canvas to put things in
-    canvasFrame = Frame(canvas, bg="lightgreen")
+    canvasFrame = Frame(canvas, bg=canvasColour)
     
     #binding frame to scrollwheel so you can still scrll whil over the frame
     canvasFrame.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
@@ -128,39 +132,33 @@ def createItemWindow(itemsFrame, searchBarText):
         for i in range(0, len(indexList)):
             
             #Frames for each item
-            itemFrame = Frame(canvasFrame, borderwidth=3, relief=tk.SUNKEN)
+            itemFrame = Frame(canvasFrame, borderwidth=3, relief=tk.SUNKEN, bg="lightblue")
             
-            itemFrame.grid(row = rowCounter, column=colCounter, pady=10, padx=10)
-            
+            itemFrame.grid(row = rowCounter, column=colCounter, pady=10, padx=2)
+
             #Titles for each item
-            itemLabel = Label(itemFrame, text="{0:^40}".format(hireItems[indexList[i]]), width=20, font=standardFont)
+            itemLabel = Label(itemFrame, text="{0:^40}".format(hireItems[indexList[i]]), width=20, font=standardFont, bg="lightblue")
             itemLabel.pack()
-            
+
             #Hire frame
-            itemHireFrame = Frame(itemFrame)
+            itemHireFrame = Frame(itemFrame, bg="lightblue")
             itemHireFrame.pack()
-            
+
             #Quantity label
-            quantityLabel = Label(itemHireFrame, text="Quantity:", font=standardFont)
-            
-            #Quantity entry
+            quantityLabel = Label(itemHireFrame, text="Quantity:", font=standardFont, bg="lightblue")
 
-            quantityEntryTextVariable = tk.StringVar()
-            quantityEntry = Entry(itemHireFrame, textvariable=quantityEntryTextVariable, font=standardFont, width=5)
+            #Quantity amount label
+            quantityAmountLabel = Label(itemHireFrame, font=standardFont, width=5, borderwidth=5, relief=tk.GROOVE, bg=buttonColour)
 
-            #Setting quanitity entry defult text to whatever the current quantity is
-            quantityEntryTextVariable.set(quantityCounter[indexList[i]])
-        
-            #Binding entry change to updating the quantity
-            # quantityEntryTextVariable.trace_add("write", lambda a, b, c: changeQuantity(index=indexList[i], textVariable=quantityEntryTextVariable, delta=0))
+            quantityAmountLabel.configure(text=quantityCounter[indexList[i]])
 
             #Subtract/Add quanity button
-            subButton = Button(itemHireFrame, text="-", font=standardFont, command= lambda index=indexList[i], quantityEntryTextVariable=quantityEntryTextVariable, delta=-1: changeQuantity(index=index, textVariable=quantityEntryTextVariable, delta=delta))
-            plusButton = Button(itemHireFrame, text="+", font=standardFont, command= lambda index=indexList[i], quantityEntryTextVariable=quantityEntryTextVariable, delta=1: changeQuantity(index=index, textVariable=quantityEntryTextVariable, delta=delta))
-            
+            subButton = Button(itemHireFrame, text="-", font=standardFont, bg=buttonColour, command= lambda index=indexList[i], label=quantityAmountLabel, delta=-1: changeQuantity(index=index, label=label, delta=delta))
+            plusButton = Button(itemHireFrame, text="+", font=standardFont, bg=buttonColour, command= lambda index=indexList[i], label=quantityAmountLabel, delta=1: changeQuantity(index=index, label=label, delta=delta))
+
             quantityLabel.grid(row=0, column=1)
             subButton.grid(row=1, column=0)
-            quantityEntry.grid(row=1, column=1)
+            quantityAmountLabel.grid(row=1, column=1)
             plusButton.grid(row=1, column=2)
 
             #Binding everything so you can scroll while over the items
@@ -168,7 +166,7 @@ def createItemWindow(itemsFrame, searchBarText):
             itemLabel.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
             itemHireFrame.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
             quantityLabel.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
-            quantityEntry.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
+            quantityAmountLabel.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
             subButton.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
             plusButton.bind("<MouseWheel>", lambda event: canvas.yview_scroll(int(event.delta / -scrollStrength), "units"))
             
@@ -227,9 +225,8 @@ def createNewHiredItemsViewCanvas(itemsFrame):
 
 
     #Binding scroll region height and canvasWindow width resize to fit the canvas width to the canvas being changed
-    #Setting height of scroll region based on amount of items
-    height = max(175 * math.ceil(len(indexList)), 550) 
-    canvas.bind("<Configure>", lambda event: newHiredItemsCanvasConfigure(event=event, canvas=canvas, scrollRegionHeight=height, canvasWindow=canvasWindow))
+    #Setting height of scroll region based on height of window
+    canvas.bind("<Configure>", lambda event: newHiredItemsCanvasConfigure(event=event, canvas=canvas, scrollRegionHeight=canvasFrame.winfo_height(), canvasWindow=canvasWindow))
 
     #Putting Hired Items into canvas 
 
@@ -309,7 +306,7 @@ def saveHire(customerName):
         #Going down a line for next hire
         file.write("\n")
     
-    #Display receipt number in message box
+    #Display receipt number in message box for feedback to user
     messagebox.showinfo("Receipt Number", "Receipt Number: " + str(receiptNum))
 
     #Going back to main window
@@ -379,7 +376,7 @@ def createHiresViewCanvas(frame, searchedNumber):
 
     #Binding scroll region height and canvasWindow width resize to fit the canvas width to the canvas being changed
     #Setting height of scroll region based on amount of valid hires
-    height = max(130 * math.ceil(len(indexList)), 550) 
+    height = max(125 * math.ceil(len(indexList)), 550) 
     canvas.bind("<Configure>", lambda event: hiresViewsCanvasConfigure(event=event, canvas=canvas, scrollRegionHeight=height, canvasWindow=canvasWindow))
 
     #Putting Hired Items into canvas 
@@ -441,7 +438,7 @@ def returnHire(index):
             file.write(line)
     
     #Show message box for feedback to user
-    messagebox.showinfo("Info", "Hire has been markes as returned")
+    messagebox.showinfo("Info", "Hire has been marked as returned")
     #Back to main page
     goToWindow(returnConfirmWindow, createMainWindow)
 
@@ -479,7 +476,7 @@ def createReturnItemsViewCanvas(itemsFrame, lineArray):
 
     #Binding scroll region height and canvasWindow width resize to fit the canvas, to the canvas being changed
     #Setting height of scroll region based on amount of items
-    height = max(175 * math.ceil((len(lineArray) - 2) / 2), 550)
+    height = max(125 * math.ceil((len(lineArray) - 2) / 2), 420)
     canvas.bind("<Configure>", lambda event: returnCanvasConfigure(event=event, canvas=canvas, scrollRegionHeight=height, canvasWindow=canvasWindow))
 
     #Putting Hired Items into canvas 
@@ -539,7 +536,7 @@ def createMainWindow(*args):
     mainWindow.geometry("%dx%d+%d+%d" % (windowWidth, windowHeight, int((root.winfo_screenwidth() / 2) - (windowWidth / 2)), int((root.winfo_screenheight() / 2) - (windowHeight / 2))))
     mainWindow.resizable(False, False)
     mainWindow.overrideredirect(True)
-    mainWindow.config(borderwidth=20, relief=tk.SUNKEN)
+    mainWindow.config(borderwidth=20, relief=tk.RAISED, bg=windwoColour)
 
     #Focusing the window
     mainWindow.focus_force()
@@ -548,10 +545,10 @@ def createMainWindow(*args):
     createTopBar(mainWindow, createMainWindow)
     
     #Buttons to other windows
-    buttonFrame = Frame(mainWindow)
-    buttonFrame.pack(pady=3, fill=BOTH, expand=True)
-    Button(buttonFrame, text="Hire Items", borderwidth=5, font=standardFont, command=lambda: goToWindow(mainWindow, createItemSelection)).pack(pady=10, padx=30)
-    Button(buttonFrame, text="View Current Hires", borderwidth=5, font=standardFont, command=lambda: goToWindow(mainWindow, createHiresView)).pack(pady=10, padx=30)
+    buttonFrame = Frame(mainWindow, bg="lightblue")
+    buttonFrame.pack(fill=BOTH, expand=True, anchor="n")
+    Button(buttonFrame, text="Hire Items", borderwidth=5, relief=tk.RAISED, font=("Lucida Sans", 25), width=20, height=3, bg=buttonColour, command=lambda: goToWindow(mainWindow, createItemSelection)).pack(pady=10, padx=30)
+    Button(buttonFrame, text="View Current Hires", borderwidth=5, relief=tk.RAISED, font=("Lucida Sans", 25), width=20, height=3, bg=buttonColour, command=lambda: goToWindow(mainWindow, createHiresView)).pack(pady=10, padx=30)
 
 
 def createItemSelection(*args):
@@ -567,7 +564,7 @@ def createItemSelection(*args):
     itemSelectionWindow.geometry("%dx%d+%d+%d" % (windowWidth, windowHeight, int((root.winfo_screenwidth() / 2) - (windowWidth / 2)), int((root.winfo_screenheight() / 2) - (windowHeight / 2))))
     itemSelectionWindow.resizable(False, False)
     itemSelectionWindow.overrideredirect(True)
-    itemSelectionWindow.config(borderwidth=20, relief=tk.SUNKEN)
+    itemSelectionWindow.config(borderwidth=20, relief=tk.RAISED, bg=windwoColour)
     
     #Focusing the window
     itemSelectionWindow.focus_force()
@@ -576,26 +573,26 @@ def createItemSelection(*args):
     createTopBar(itemSelectionWindow, createMainWindow)
     
     # create a main frame to put everything into
-    mainFrame = Frame(itemSelectionWindow)
+    mainFrame = Frame(itemSelectionWindow, bg=backgroundColour)
     mainFrame.config(borderwidth=5, relief=tk.RIDGE)
     mainFrame.pack(fill=BOTH, expand=True) # Fills the whole screen, and expands to fit it
 
     #Creating sidebar for search
-    sideBar = Frame(mainFrame, bg="lightblue",  borderwidth=3, relief=tk.RIDGE)
+    sideBar = Frame(mainFrame, bg=backgroundColour,  borderwidth=3, relief=tk.RIDGE)
     sideBar.pack(side=LEFT, fill=BOTH)
     
-    searchLabel = Label(sideBar, text="Search", anchor="w", borderwidth=5, relief=tk.SUNKEN, font=standardFont)
+    searchLabel = Label(sideBar, text="Search", anchor="w", borderwidth=5, relief=tk.RAISED, font=standardFont, bg=buttonColour)
     searchLabel.grid(row=0, column=0, padx=10, pady=10, sticky="w")
     
     searchBarTextVariable = tk.StringVar()
-    searchBar = Entry(sideBar, textvariable=searchBarTextVariable, borderwidth=2)
+    searchBar = Entry(sideBar, textvariable=searchBarTextVariable, borderwidth=2, bg=buttonColour)
     searchBar.grid(row=1, column=0, padx=10, sticky="w")
 
     #Binding entry change to refreshing the item frame
     searchBarTextVariable.trace_add("write", lambda a, b, c: createItemWindow(itemFrame, searchBarTextVariable.get()))
 
     #Confirm order button
-    Button(sideBar, text="Check Hire", font=standardFont, command=lambda: goToWindow(itemSelectionWindow, createConfirmItemSelection)).grid(row=2, column=0, pady=425, padx=10, sticky="s")
+    Button(sideBar, text="Check Hire", font=standardFont, bg=buttonColour, command=lambda: goToWindow(itemSelectionWindow, createConfirmItemSelection)).grid(row=2, column=0, pady=425, padx=10, sticky="s")
 
     #Creating frame for canvas to sit in
     itemFrame = Frame(mainFrame)
@@ -617,7 +614,7 @@ def createConfirmItemSelection(*args):
     confirmItemSelectionWindow.geometry("%dx%d+%d+%d" % (windowWidth, windowHeight, int((root.winfo_screenwidth() / 2) - (windowWidth / 2)), int((root.winfo_screenheight() / 2) - (windowHeight / 2))))
     confirmItemSelectionWindow.resizable(False, False)
     confirmItemSelectionWindow.overrideredirect(True)
-    confirmItemSelectionWindow.config(borderwidth=20, relief=tk.SUNKEN)
+    confirmItemSelectionWindow.config(borderwidth=20, relief=tk.RAISED, bg=windwoColour)
     
     #Focusing the window
     confirmItemSelectionWindow.focus_force()
@@ -664,7 +661,7 @@ def createHiresView(*args):
     hiresViewWindow.geometry("%dx%d+%d+%d" % (windowWidth, windowHeight, int((root.winfo_screenwidth() / 2) - (windowWidth / 2)), int((root.winfo_screenheight() / 2) - (windowHeight / 2))))
     hiresViewWindow.resizable(False, False)
     hiresViewWindow.overrideredirect(True)
-    hiresViewWindow.config(borderwidth=20, relief=tk.SUNKEN)
+    hiresViewWindow.config(borderwidth=20, relief=tk.RAISED, bg=windwoColour)
     
     #Focusing the window
     hiresViewWindow.focus_force()
@@ -714,7 +711,7 @@ def createReturnConfirm(hireIndex, *args):
     returnConfirmWindow.geometry("%dx%d+%d+%d" % (windowWidth, windowHeight, int((root.winfo_screenwidth() / 2) - (windowWidth / 2)), int((root.winfo_screenheight() / 2) - (windowHeight / 2))))
     returnConfirmWindow.resizable(False, False)
     returnConfirmWindow.overrideredirect(True)
-    returnConfirmWindow.config(borderwidth=20, relief=tk.SUNKEN)
+    returnConfirmWindow.config(borderwidth=20, relief=tk.RAISED, bg=windwoColour)
     
     #Focusing the window
     returnConfirmWindow.focus_force()
