@@ -19,7 +19,9 @@ root.geometry("1x1")
 root.iconify()
 
 #Global fonts
-standardFont = ("Lucida Sans", 14)
+standardFontFamily = "Lucida Sans"
+standardFont = (standardFontFamily, 14)
+
 buttonColour = "#7dc6f0"
 windwoColour = "#7D8DF0"
 canvasColour = "#C6F07D"
@@ -43,22 +45,32 @@ def createTopBar(currentWindow, targetBackWindow):
 
     titleFrame = Frame(topBarFrame, borderwidth=5, relief=tk.RAISED, bg="#7DF0E0")
     titleFrame.pack(side=LEFT, fill=BOTH, expand=True, pady=10, padx=10)
-    Label(titleFrame, text="Julies Party Hire Store", font=tkFont.Font(family="Lucida Sans", size=30, weight="bold"), height=2, bg="#7DF0E0").pack(pady=10, anchor=tk.CENTER)
+    Label(titleFrame, text="Julies Party Hire Store", font=tkFont.Font(family=standardFontFamily, size=30, weight="bold"), height=2, bg="#7DF0E0").pack(pady=10, anchor=tk.CENTER)
 
     buttonFrame = Frame(topBarFrame, bg=backgroundColour)
     buttonFrame.pack(side=RIGHT, pady=10)
 
-    exitButton = Button(buttonFrame, text="X", font=tkFont.Font(family="Lucida Sans", size=30, weight="bold"), borderwidth=5, relief=tk.RAISED, height=2, bg=buttonColour, command=lambda: quit())
-    backbutton = Button(buttonFrame, text="<-", font=tkFont.Font(family="Lucida Sans", size=30, weight="bold"), borderwidth=5, relief=tk.RAISED, height=2, bg=buttonColour, command=lambda: goToWindow(currentWindow, targetBackWindow))
+    exitButton = Button(buttonFrame, text="X", font=tkFont.Font(family=standardFontFamily, size=30, weight="bold"), borderwidth=5, relief=tk.RAISED, height=2, bg=buttonColour, command=lambda: quit())
+    backbutton = Button(buttonFrame, text="<-", font=tkFont.Font(family=standardFontFamily, size=30, weight="bold"), borderwidth=5, relief=tk.RAISED, height=2, bg=buttonColour, command=lambda: goToWindow(currentWindow, targetBackWindow))
     
-    backbutton.grid(row=0, column=1, padx=10, pady=10)
-    exitButton.grid(row=0, column=2, padx=10, pady=10)
+    backbutton.grid(row=0, column=0, padx=10, pady=10)
+    exitButton.grid(row=0, column=1, padx=10, pady=10)
 
 
 
 ####################################################################################################################################
 #Item Screen Functions
 ####################################################################################################################################
+
+def itemSearchbarValidate(text):  
+    #Maximum amount of chars allowed in entry
+    maxTextLength = 35
+    
+    #If over maximum, reject
+    if(len(text) > maxTextLength):
+        return False
+    else:
+        return True
 
 def changeQuantity(index, label, delta):
     #Getting amount in entry incase of changing using keyboard
@@ -282,6 +294,51 @@ def generateReceiptNumber():
             break
     return receiptNum
 
+def validateString(string, rangeMin, rangeMax):
+    try:
+        #If variable can convert to an int, then it is invalid
+        test = int(string)
+        return False
+    except ValueError:
+        specialCharCounter = 0
+        
+        #If name cant turn into an int, check it has no special characters
+        for i in string.lower(): #Making sure each character in string is lowercase
+            #Checking if the currently selected characer is in the alphabet - Couldn't find a way to not hard code this
+            if (i == "a" or i == "b" or i =="c" or i == "d" or i == "e" or i == "f" or i == "g" or i == "h" or i == "i" or i == "j" or i =="k" or i =="l" or i == "m" or i == "n" or i == "o" or i =="p" or i =="q" or i == "r" or i == "s" or i == "t" or i =="u" or i == "v" or i == "w" or i == "x" or i == "y" or i == "z"):
+                continue #If it is in the alphabet, continue the loop
+            elif(i == " " or i == "'" or i == "-"):
+                specialCharCounter += 1
+                continue #If it is a valid special character, increse special character count and continue loop
+            else:
+                return False #if its not in the alphabet, end function and return false
+        
+        #If the more than 40% of the name is special characters, then it is not valid
+        if(specialCharCounter > (len(string) * 0.4)):
+            return False                
+        
+        #Making sure string is in range
+        if (rangeMin < len(string) < rangeMax):
+            return True #if the string made it through the loop and is in range, return true
+        else:
+            return False #If the string never went through the loop becuase its empty, or if its out of range, return false
+
+
+def validateName(entry, textVariable):
+    name = textVariable.get()
+    # If name is valid, save hire
+    if(validateString(name, 3, 35)):
+        saveHire(name)
+    # If name is invalid
+    else:
+        #Delete name
+        entry.delete(0, END)
+        
+        #Tell user to renter name
+        messagebox.showinfo("Error", "Please renter name. Only english characters and ' or - are allowed.")
+        
+
+
 def saveHire(customerName):
     #Get receipt number
     receiptNum = generateReceiptNumber()
@@ -315,6 +372,16 @@ def saveHire(customerName):
 ####################################################################################################################################
 #HIRES VIEW FUNCTIONS
 ####################################################################################################################################
+def receiptSearchbarValidate(text):  
+    #Maximum amount of chars allowed in entry
+    maxTextLength = 35
+    
+    #If over maximum, reject
+    if(len(text) > maxTextLength):
+        return False
+    else:
+        return True
+
 def hiresViewsCanvasConfigure(event, canvas, scrollRegionHeight, canvasWindow):
     canvas.configure(scrollregion=(0, 0, 1000, scrollRegionHeight))
     canvas.itemconfig(canvasWindow, width=event.width)
@@ -547,8 +614,8 @@ def createMainWindow(*args):
     #Buttons to other windows
     buttonFrame = Frame(mainWindow, bg="lightblue")
     buttonFrame.pack(fill=BOTH, expand=True, anchor="n")
-    Button(buttonFrame, text="Hire Items", borderwidth=5, relief=tk.RAISED, font=("Lucida Sans", 25), width=20, height=3, bg=buttonColour, command=lambda: goToWindow(mainWindow, createItemSelection)).pack(pady=10, padx=30)
-    Button(buttonFrame, text="View Current Hires", borderwidth=5, relief=tk.RAISED, font=("Lucida Sans", 25), width=20, height=3, bg=buttonColour, command=lambda: goToWindow(mainWindow, createHiresView)).pack(pady=10, padx=30)
+    Button(buttonFrame, text="Hire Items", borderwidth=5, relief=tk.RAISED, font=(standardFontFamily, 25), width=20, height=3, bg=buttonColour, command=lambda: goToWindow(mainWindow, createItemSelection)).pack(pady=10, padx=30)
+    Button(buttonFrame, text="View Current Hires", borderwidth=5, relief=tk.RAISED, font=(standardFontFamily, 25), width=20, height=3, bg=buttonColour, command=lambda: goToWindow(mainWindow, createHiresView)).pack(pady=10, padx=30)
 
 
 def createItemSelection(*args):
@@ -584,12 +651,16 @@ def createItemSelection(*args):
     searchLabel = Label(sideBar, text="Search", anchor="w", borderwidth=5, relief=tk.RAISED, font=standardFont, bg=buttonColour)
     searchLabel.grid(row=0, column=0, padx=10, pady=10, sticky="w")
     
+    searchBarValidate = root.register(itemSearchbarValidate)
+    
     searchBarTextVariable = tk.StringVar()
-    searchBar = Entry(sideBar, textvariable=searchBarTextVariable, borderwidth=2, bg=buttonColour)
+    searchBar = Entry(sideBar, textvariable=searchBarTextVariable, borderwidth=2, bg=buttonColour, validate="key", validatecommand=(searchBarValidate, "%P"))
     searchBar.grid(row=1, column=0, padx=10, sticky="w")
 
     #Binding entry change to refreshing the item frame
     searchBarTextVariable.trace_add("write", lambda a, b, c: createItemWindow(itemFrame, searchBarTextVariable.get()))
+    
+    
 
     #Confirm order button
     Button(sideBar, text="Check Hire", font=standardFont, bg=buttonColour, command=lambda: goToWindow(itemSelectionWindow, createConfirmItemSelection)).grid(row=2, column=0, pady=425, padx=10, sticky="s")
@@ -644,7 +715,7 @@ def createConfirmItemSelection(*args):
     customerNameEntry.pack(pady=10, padx=10, side=LEFT)
 
     #Confirm Hire button
-    confirmHireButton = Button(mainFrame, text="Confirm Hire", font=standardFont, command=lambda : saveHire(customerName=customerNameEntryText.get()))
+    confirmHireButton = Button(mainFrame, text="Confirm Hire", font=standardFont, command=lambda customerNameEntry=customerNameEntry, customerNameEntryText=customerNameEntryText: validateName(customerNameEntry, customerNameEntryText))
     confirmHireButton.pack(pady=10, padx=10, side=RIGHT)
 
 
@@ -677,22 +748,24 @@ def createHiresView(*args):
     #Frame for receipt number search
     receiptNumberFrame = Frame(mainFrame)
     receiptNumberFrame.pack(anchor=tk.NW)
-
+    
+    
+    searchBarValidate = root.register(receiptSearchbarValidate)
     #Receipt number label and entry
     Label(receiptNumberFrame, text="Search Receipt No.:", font=standardFont).grid(row=0, column=0, pady=10, padx=10)
-    customerNameEntryText = tk.StringVar()
-    customerNameEntry = Entry(receiptNumberFrame, textvariable=customerNameEntryText, font=standardFont)
-    customerNameEntry.grid(row=0, column=1, pady=10, padx=10)
+    receipNumberEntryText = tk.StringVar()
+    receiptNumberEntry = Entry(receiptNumberFrame, textvariable=receipNumberEntryText, font=standardFont, validate="key", validatecommand=(searchBarValidate, "%P"))
+    receiptNumberEntry.grid(row=0, column=1, pady=10, padx=10)
 
     #Frame for hires to go in
     hireFrame = Frame(mainFrame, borderwidth=10, relief=tk.RAISED)
     hireFrame.pack(fill=BOTH, expand=True)
 
     #Binding search bar entry change to refreshing the hires shown
-    customerNameEntryText.trace_add("write", lambda a, b, c: createHiresViewCanvas(hireFrame, customerNameEntryText.get()))
+    receipNumberEntryText.trace_add("write", lambda a, b, c: createHiresViewCanvas(hireFrame, receipNumberEntryText.get()))
 
     #Creating canvas with hires in it
-    createHiresViewCanvas(hireFrame, customerNameEntryText.get())
+    createHiresViewCanvas(hireFrame, receipNumberEntryText.get())
 
 
 def createReturnConfirm(hireIndex, *args):
